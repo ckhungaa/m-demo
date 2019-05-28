@@ -1,0 +1,53 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: demo-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /demo(/|$)(.*)
+        backend:
+          serviceName: m-demo-service
+          servicePort: 8080
+---          
+apiVersion: v1
+kind: Service
+metadata:
+  name: m-demo-service
+  labels:
+    app: m-demo
+spec:
+  ports:
+  - name: 8080-http
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: m-demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: m-demo-deployment
+  labels:
+    app: m-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: m-demo
+  template:
+    metadata:
+      labels:
+        app: m-demo
+    spec:
+      containers:
+      - name: m-demo
+        image: m-demo
+        imagePullPolicy: Never
+        args: 
+          - demo
+        ports:
+        - containerPort: 8080
